@@ -4,12 +4,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
-from dotenv import load_dotenv
+
 
 from config.settings import settings
 from src.Auth.router import router as auth_router
 
-load_dotenv()
 
 
 @asynccontextmanager

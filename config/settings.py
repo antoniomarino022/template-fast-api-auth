@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(default=...)
     SECRET_KEY_JWT: str = Field(default=...)
     SECRET_KEY_SESSION: str | None = None
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_SECONDS: int = 900
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 
     model_config = SettingsConfigDict(
         env_file=".env",

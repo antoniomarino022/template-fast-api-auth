@@ -1,22 +1,23 @@
-from pydantic import BaseModel, EmailStr,Field
-from typing import Optional
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
 
 
 class RegisterUserDto(BaseModel):
-    username: str
+    username: str = Field(min_length=3, max_length=32)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8)
 
 
 class LoginUserDto(BaseModel):
     email: EmailStr
     password: str
 
+
+
 class UserResponse(BaseModel):
     username: str
     email: EmailStr
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime
 
 
 class AuthTokenResponse(BaseModel):
