@@ -5,9 +5,11 @@ from src.Auth.schema import (
     AuthTokenResponse,
     LoginUserDto,
     LogoutDto,
+    RefreshTokenDto,
     RegisterUserDto,
 )
-from src.Auth.service import login, logout, register
+from src.Auth.service import login, logout,  register
+from src.Auth.utils import refresh_token
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -27,3 +29,8 @@ async def login_route(data: LoginUserDto, session: SessionDep):
 @router.post("/logout")
 async def logout_route(data: LogoutDto, session: SessionDep):
     return await logout(data.refresh_token, session)
+
+
+@router.post("/refresh", response_model=AuthTokenResponse)
+async def refresh_token_route(data: RefreshTokenDto, session: SessionDep):
+    return await refresh_token(data.refresh_token, session)

@@ -12,7 +12,8 @@ from src.User.model import User
 from src.Auth.model import Auth
 
 from src.Auth.schema import AuthTokenResponse, UserResponse
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import select
 
 from config.settings import settings
@@ -87,3 +88,46 @@ async def refresh_token(raw_refresh_token: str, session: SessionDep) -> AuthToke
     await session.commit()
 
     return await create_auth_tokens(user, session)
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+
+
+async def get_current_user(
+        session: SessionDep,
+        token: str = Depends(oauth2_scheme),
+    ) -> User:
+        try:
+            payload = jwt.decode(token, SECRET_KEY_JWT,
+  algorithms=[ALGORITHM])
+            user_id_str = payload.get("sub")
+            if user_id_str is None:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Could not validate credentials",
+                )
+            user_id = int(user_id_str)
+        except (jwt.PyJWTError, ValueError):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Could not validate credentials",
+            )
+
+        user = await session.get(User, user_id)
+        if user is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+
+        return user
+
+
+
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The user does not have enough privileges",
+        )
+    return current_user
